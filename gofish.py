@@ -9,9 +9,9 @@ import random
 VALUES = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "Ace", "Jack", "King", "Queen"]
 
 #Prints a message with a wait before continuing.
-def say(msg, wait=1.5):
+def say(msg):
 	print(msg)
-	time.sleep(wait)
+	time.sleep(1.5)
 
 #Clears string. Used at start of game/turn.
 def clear():
@@ -33,24 +33,24 @@ class Game():
 		self.computerHand = []
 		self.playerSuites = []
 		self.computerSuites = []
-		self.giveUp = False #If the user exits the game by entering in exit, then this is True and the game halts.
 		self.turnCount = 0		
+		self.giveUp = False
 
 		clear()
+
 		#Construct and shuffle Deck
 		for i in VALUES:
 			for j in ["Clubs", "Diamonds", "Hearts", "Spades"]:
 				self.deck.append(Card(i, j))
-
 		random.shuffle(self.deck)
 
-		print("Beginning game!")
+		say("Beginning game!")
 		say("Tossing coin to determine who goes first...")
 		self.turn = random.choice([True, False]) #True for human turn, False for computer turn
 		if self.turn:
-			print("You go first! Each player now draws 7 cards...")
+			say("You go first! Each player now draws 7 cards...")
 		else:
-			print("The Computer goes first! Each player nows draw 7 cards...")
+			say("The Computer goes first! Each player nows draw 7 cards...")
 
 		for i in range(7): #7 draws
 			self.playerDraw(show=False)
@@ -61,24 +61,40 @@ class Game():
 		self.checkComputerSuites()
 		input("Press enter to begin the game now.")
 
-		while (7 > len(self.computerSuites) and 7 > len(self.playerSuites) and (not self.giveUp)):
+		while True:
 			self.turnCount += 1
 			if self.turn:
 				self.playerTurn()
 			else:
 				self.computerTurn()
 			#self.turn is modified in the playerTurn()/computerTurn() method
+			
+			if (len(self.playerSuites) >= 7 or len(self.computerSuites) >= 7
+			or len(self.playerHand) == 0 or len(self.computerHand) == 0
+			or len(self.deck) == 0 or self.giveUp):
+				break
 
 		clear()
 
 		if self.giveUp:
-			print("You have forefited the game. Congratulations to the Computer, they win! Better luck next time.")
-		elif len(self.playerSuites) >= 7:
-			print("Congratulations! You have won the game.")
+			print("You have forefited the game. The computer wins!\nHere are the final results.\n")
 		else:
-			print("Sorry, but it looks like you lost this game. Better luck next time!")
+			if len(self.playerSuites) >= 7 or len(self.computerSuites) >= 7:
+				say("Hold on! Someone has completed 7 Suites.")
+			elif len(self.playerHand) == 0 or len(self.computerHand) == 0:
+				say("Hold on! Someone has an empty hand.")
+			elif deck == 0:
+				say("Hold on! The deck has been emptied.")
+			say("That means the game is over. Here are the final results...\n")
 
-		print(f"Game results:\n"+
+			if len(self.playerSuites) > len(self.computerSuites):
+				say("Congratulations, you are the winner!")
+			elif len (self.playerSuites) < len(self.computerSuites):
+				say("The Computer won! Better luck next time.")
+			else:
+				say("It's a draw! Neither player won.")
+
+		print(f"\nGame results:\n"+
 			  f"Turn Count: {self.turnCount}\n"+
 			  f"Final deck size: {len(self.deck)}\n"+
 			  f"Your Completed Suites ({len(self.playerSuites)}): {self.playerSuites}\n"+
@@ -101,35 +117,24 @@ class Game():
 
 	#Checks if the player has a completed suite, and if so, removes it from their hand and raises their count of completed suites.
 	def checkPlayerSuites(self):
-		if len(self.playerHand) == 0:
-			return
-
 		for i in VALUES:
 			if sum(card.Value==i for card in self.playerHand) == 4:
-				say(f"You have a Completed Suite for value {i}! Moving all cards of that Completed Suite out of your hand.")
+				say(f"You have completed the Suite for value {i}!")
+				say(f"You now discard all 4 cards of that Value.")
 				self.playerHand = [card for card in self.playerHand if card.Value!=i]
 				self.playerSuites.append(i)
-				say(f"You now have a Completed Suite for value {i}. You have completed {len(self.playerSuites)} suites.")
+				say(f"You have completed {len(self.playerSuites)} suites.")
 
-		if len(self.playerHand) == 0 and len(self.deck) > 0:
-			say("Your hand was emptied after completing a Suite. You may draw one card now.")
-			self.playerDraw()
-
+		
 	#Same as checkPlayerSuites, but for the Computer. (Strings are different.)
 	def checkComputerSuites(self):
-		if len(self.computerHand) == 0:
-			return
-
 		for i in VALUES:
 			if sum(card.Value==i for card in self.computerHand) == 4:
-				say(f"The computer has a Completed Suite for value {i}! Moving all cards of that Completed Suite out of their hand.")
+				say(f"The computer has completed the Suite for value {i}!")
+				say(f"Computer now discards all 4 cards of that Value.")
 				self.computerHand = [card for card in self.computerHand if card.Value!=i]
 				self.computerSuites.append(i)
-				say(f"The computer now has a Completed Suite for value {i}. They have completed {len(self.computerSuites)} suites.")
-
-		if len(self.computerHand) == 0 and len(self.deck) > 0:
-			say("The computer's hand was emptied after completing a Suite. They may draw one card now.")
-			self.computerDraw()
+				say(f"The computer has completed {len(self.computerSuites)} suites.")
 
 	#Outputs a list of cards in the player's hand. Sorted by value, and includes a count of the number of cards of that value.
 	def printHand(self):
@@ -218,15 +223,13 @@ class Game():
 			self.turn = not self.turn
 			say("Sorry, computer has no cards with such value.")
 			say("Player, go fish! You draw a card.")
-			if len(self.deck) == 0:
-				say("Deck is empty. Card draw skipped.")
-			else:
-				self.playerDraw()
-				
-				if self.playerHand[-1].Value==guess:
-					self.turn = not self.turn
-					say(f"Congratulations! The card you just drew is of the value you guessed. You get an extra turn!")
-				self.checkPlayerSuites()
+			self.playerDraw()
+			
+			if self.playerHand[-1].Value==guess:
+				self.turn = not self.turn
+				say(f"Congratulations! The card you just drew is of the value you guessed. You get an extra turn!")
+
+			self.checkPlayerSuites()
 
 		if self.turn:
 			input("Press enter to close this text and start your extra turn.")
@@ -265,14 +268,12 @@ class Game():
 			say("Nope, you have no cards with such value.")
 			say("The computer must Go Fish! Computer draws a card.")
 
-			if len(self.deck) == 0:
-				say("Deck is empty. Card draw skipped.")
-			else:
-				self.computerDraw()
-				if self.computerHand[-1].Value==guess:
-					self.turn = not self.turn
-					say(f"The card the computer just drew is of their guessed value, {guess}. The computer gets an extra turn!")
-				self.checkComputerSuites()
+			self.computerDraw()
+			if self.computerHand[-1].Value==guess:
+				self.turn = not self.turn
+				say(f"The card the computer just drew is of their guessed value, {guess}. The computer gets an extra turn!")
+
+			self.checkComputerSuites()
 
 		if self.turn:
 			input("Press enter to close this text and start your turn.")
@@ -283,8 +284,9 @@ def main():
 	stopped = False
 	while not stopped:
 		result = input("Welcome to aelna354's Go Fish Game!\n"+
-		"Enter anything other than exit to start a game.\n"+
-		"Enter exit in any casing to close the program.\n")
+		"(Consult the README.MD file to view the rules.)\n"
+		"Enter exit in any casing to close the program.\n"+
+		"Otherwise, press enter to start the game.\n")
 		
 		if result.lower() == "exit":
 			stopped = True

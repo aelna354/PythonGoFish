@@ -6,7 +6,9 @@ There is the standard deck of 52 cards. In this deck, there are 13 "Face Values"
 
 This version of the game is restricted to a play between 2 players and of course the second player is the CPU.
 
-The goal of the game is to be the first player to have a majority of Completed Suites. A Completed Suite is a set of 4 cards all of a particular Value (where each card is of a different Suite). Since there are 13 different Values, that means there are 13 different Completed Suites - the first player to complete a majority of these Suites, which would be 7, is the winner. An example of a Completed Suite would be the 4 cards 2 of Diamonds, 2 of Hearts, 2 of Clubs and 2 of Spades. This is the Completed Suite for 2. Every other Value similarly has its own Completed Suite.
+The goal of the game is to have more Completed Suites than the other player once the game ends. A Completed Suite is a set of 4 cards, all of a particular Value (where each card is of a different Suite). Since there are 13 different Values, that means there are 13 different Completed Suites. An example of a Completed Suite would be the 4 cards 2 of Diamonds, 2 of Hearts, 2 of Clubs and 2 of Spades. This is the Completed Suite for 2. Every other Value similarly has its own Completed Suite.
+
+At the end of the game, whoever has more Completed Suites than the other wins. There are three events that cause the game to end: these include a player having 7 Completed Suites, a player's hand being empty, or the deck being emptied.
 
 The rules of the games are as follows. At the beginning, each player draws 7 cards. Each player's hand is concealed from the other player, but the other player can see the number of cards in their opponent's hand. The game is played in turns. At the beginning, a coin is tossed to determine who goes first.
 
