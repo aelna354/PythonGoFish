@@ -134,7 +134,7 @@ class Game():
 	#Outputs a list of cards in the player's hand. Sorted by value, and includes a count of the number of cards of that value.
 	def printHand(self):
 		if len(self.playerHand) == 0:
-			return "\n"
+			return ""
 
 		output = ""
 		for i in VALUES:
@@ -143,7 +143,8 @@ class Game():
 				string = ""
 				for s in cards: string += f"{s}, "
 				string = string[:-2] #Exlcude space and comma added after last element
-				output += f"{i.ljust(5)} ({len(cards)}): {string}\n"
+				cardValue = i.ljust(5)
+				output += f"{cardValue} ({len(cards)}): {string}\n"
 
 		return output
 
@@ -210,7 +211,6 @@ class Game():
 		if num > 0:
 			say(f"Computer has {num} cards with such value! Computer surrenders those cards to Player.")
 			self.computerHand, self.playerHand = self.surrender(self.computerHand, self.playerHand, guess)
-			say("Checking player hand for Suites...")
 			self.checkPlayerSuites()
 			say("Due to your correct guess, you get an extra turn!")
 			
@@ -226,7 +226,6 @@ class Game():
 				if self.playerHand[-1].Value==guess:
 					self.turn = not self.turn
 					say(f"Congratulations! The card you just drew is of the value you guessed. You get an extra turn!")
-				say("Checking for completed Suites...")
 				self.checkPlayerSuites()
 
 		if self.turn:
@@ -258,7 +257,6 @@ class Game():
 		if num > 0:
 			say(f"You are holding {num} cards with such value! You surrender them to the Computer.")
 			self.playerHand, self.computerHand = self.surrender(self.playerHand, self.computerHand, guess)
-			say("Checking computer hand for Suites...")
 			self.checkComputerSuites()
 			say("Due to its correct guess, the computer gains an extra turn!")
 
@@ -274,7 +272,6 @@ class Game():
 				if self.computerHand[-1].Value==guess:
 					self.turn = not self.turn
 					say(f"The card the computer just drew is of their guessed value, {guess}. The computer gets an extra turn!")
-				say("Checking computer hand for Suites...")
 				self.checkComputerSuites()
 
 		if self.turn:

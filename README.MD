@@ -14,4 +14,4 @@ During a player's turn, they (herein referred to as the "Turn Player") must ask 
 
 As sonn as a player is holding all 4 cards of a Completed Suite, whether this is after the initial 7-card-draw, after Go Fishing, or after recieving cards from their opponent, they must immediately place those 4 cards on the table in a pile and that pile is considered their Completed Suite. The first player to have 7 of these Completed Suite piles wins.
 
-Provided the deck is not empty: whenever a player's hand is empty at the start of their turn, or whenever a player's hand is empty after they place a Completed Suit, they draw 1 card.
+Provided the deck is not empty: whenever a player's hand is empty at the start of their turn, or whenever a player's hand is empty after they place a Completed Suite, they draw 1 card.
