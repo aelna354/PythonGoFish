@@ -143,11 +143,14 @@ class Game():
                 break
 
     #Outputs a list of cards in the player's hand. Sorted by value, and includes a count of the number of cards of that value.
-    def printHand(self):
+    def printHand(self, hand=None):
+        if hand==None:
+            hand = self.playerHand
+ 
         output = ""
 
         for i in VALUES:
-            cards = [card for card in self.playerHand if card.Value==i]
+            cards = [card for card in hand if card.Value==i]
             if len(cards) > 0:
                 string = ""
                 for s in cards:
@@ -157,6 +160,10 @@ class Game():
                 output += f"{cardValue} ({len(cards)}): {string}\n"
 
         return output
+
+    #If a "secret" cheat code is entered ("revealHand"), this function exposes the contents of the opponent's hand.
+    def revealHand(self):
+        return "The computer's hand consists of:\n" + self.printHand(hand=self.computerHand) + "\n"
 
     #Function used to transfer cards of the guessed type from one player to the other.
     #Takes in the current hands by value, and returns the updated hands.
@@ -191,6 +198,12 @@ class Game():
             if guess.lower() in ["jack", "king", "queen", "ace"]: #Allows case insensitive input
                 guess = guess.lower().capitalize()
 
+            if guess == "revealHand":
+                
+                guess = ""
+                print(f"{self.revealHand()}\nEnter your choice.")
+                continue
+
             if guess not in VALUES:
                 print("ERROR: Input value not in accepted range. Enter an integer from 2-10,\n"+
                       "or one of the words Jack, King, Queen, Ace or Exit in any casing.\n")
@@ -201,6 +214,7 @@ class Game():
                 print("ERROR: You are not holding a card of the provided input value.\n")
                 guess = ""
                 continue
+
 
         say(f"Player asks the computer: got any {guess}s?")
         num = sum(card.Value==guess for card in self.computerHand)
