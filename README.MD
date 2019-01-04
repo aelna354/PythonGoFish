@@ -1,8 +1,8 @@
 # aeln354's Go Fish Game
 
-Made for fun/outta boredom. Inspired by the Go Fish game in Spy Fox in Dry Cereal. Coded in Python. Play it with `python gofish.py`. Programmed in Python 3.
+Made for fun/outta boredom. Inspired by the Go Fish game in Spy Fox in Dry Cereal. Coded in Python 3.
 
-This version of the game pits the player against the CPU.
+This version of the game pits the player against the CPU. `gofish.py` is the command line version of the game and the first one originally developed. `gui.py` is the GUI version of the game though the GUI is extremely minimalistic; it still uses a terminal screen and it doesn't display the cards. The main draw of this version is that it can be played with the mouse alone (no keyboard usage necessary). To play the command line version, run `python gofish.py` in the terminal; use `app.cmd` to run the GUI version.
 
 # Rules
 
@@ -26,9 +26,7 @@ When a player has an empty hand, or once the deck is empty, the game ends. At th
 
 # Cheat Codes
 
-Enter "revealHand" when prompted to see the contents of the computer's hand. May be fun/charming, but will remove strategy from the game and make it a cakewalk!
+Enter "revealHand" when prompted to see the contents of the computer's hand. May be fun/charming, but will remove strategy from the game and make it a cakewalk! (Currently only supported on console version.)
 
 # Features To Be Implemented
-* An "Extended Play Mode" where only one card of the asked-for Value is surrendered to make the game longer and more strategic
-* A deck-viewing cheat
-* Create a GUI for this game in Tkinter or maybe even Ren'py
+* An "Extended Play Mode" where only one card of the asked-for Value is surrendered. Would make the game more strategic, but also a lot longer and slower (possibly to the point of tedium)
