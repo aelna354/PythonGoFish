@@ -23,7 +23,7 @@ class GoFish():
         self.started  = False
         self.messages = []    #Backlog of messages to be printed to the screen. Printed with communicate()        
 
-        self.terminal = Text(self.master, height=20, width=80)
+        self.terminal = Text(self.master, height=21, width=80)
         self.terminal.grid(row=0, column=1)
 
         self.forefitbutton = Button(self.master, width=8, text="Surrender", bg="yellow", command=self.forefit)
@@ -148,14 +148,15 @@ class GoFish():
                 self.computerDraw()
                 if self.computerHand[-1].Value==guess:
                     self.turn = not self.turn
-                    self.say(f"The card the computer just drew is of their guessed value, {guess}. The computer gets an extra turn!")
+                    self.say(f"The card the computer just drew is of their guessed value, {guess}.")
+                    self.say("The computer gets an extra turn!")
 
             self.checkComputerBooks()
 
             if self.turn:
-                self.say("Press Start Turn to start your turn.")
+                self.say("\nPress Start Turn to start your turn.")
             else:
-                self.say("Press Start Turn to start the computer's extra turn.")
+                self.say("\nPress Start Turn to start the computer's extra turn.")
 
             self.communicate()
 
@@ -180,7 +181,7 @@ class GoFish():
         for i in list(set(self.playerHand)):
             self.buttons[i.Value]['state'] = DISABLED
 
-        self.say(f"Player asks the computer: got any {val}s?")
+        self.say(f"\nPlayer asks the computer: got any {val}s?")
         num = sum(card.Value==val for card in self.computerHand)
 
         if num > 0:
@@ -196,14 +197,15 @@ class GoFish():
 
             if self.playerHand[-1].Value==val:
                 self.turn = not self.turn
-                self.say(f"Congratulations! The card you just drew is of the value you guessed. You get an extra turn!")
+                self.say("Congratulations! The card you just drew is of the value you just guessed.")
+                self.say("You get an extra turn!")
 
         self.checkPlayerBooks()
         
         if self.turn:
-            self.say("Press the start button to start your extra turn.")
+            self.say("\nPress the start button to start your extra turn.")
         else:
-            self.say("Press the start button to start the computer's turn.")
+            self.say("\nPress the start button to start the computer's turn.")
 
         self.togglestart() #re-enables start button (so communicate() can immediately deactivate it as normal; start button is disabled when player picks a card)
         self.communicate()
