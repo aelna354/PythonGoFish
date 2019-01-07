@@ -335,7 +335,7 @@ class GoFish():
         for i in VALUES:
             if sum(card.Value==i for card in self.computerHand) == 4:
                 self.say(f"The computer has completed the Book for Value {i}!")
-                self.computerHand = [card for card in self.playerHand if card.Value!=i]
+                self.computerHand = [card for card in self.computerHand if card.Value!=i]
                 self.say(f"Cards of Value {i} discarded.")
                 self.computerBooks.append(i)
                 self.say(f"The computer has completed {len(self.computerBooks)} Books.")
