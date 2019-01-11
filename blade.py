@@ -149,6 +149,34 @@ class Game():
 			else:
 				self.cpuTurn()
 
+	def ask(self):
+		say("Enter the number of the selected card if it is a Blade card.\n"+
+			"Enter \"Bolt\" or \"Mirror\" (case insensitive) to pick one of those cards.\n"+
+			"You can only pick a card in your hand.")
+
+		while True:
+			c = input().lower()
+
+			if c not in ["1", "2", "3", "4", "5", "6", "7", "mirror", "bolt"]:
+				c = ""
+				print("Invalid input. Please re-enter.")
+			
+			elif c == "mirror":
+				if 0 == sum(card.type=="Mirror" for card in self.playerHand):
+					c = ""
+					print("You are not holding a Mirror card. Please re-enter.")
+
+			elif c == "bolt":
+				if 0 == sum(card.type=="Bolt" for card in self.playerHand):
+					c = ""
+					print("You are not holding a Bolt card. Please re-enter.")
+
+			else:
+				if 0 == sum(card.type=="Blade" and card.value==c for card in self.playerHand):
+					c = ""
+					print("Your are not holding a card of that value. Please re-enter.")
+		return c
+
 	def dick(self):
 		say("Time to dick! Clearing the field...")
 		self.playerField = []
@@ -156,8 +184,13 @@ class Game():
 		self.playerScore = 0
 		self.cpuScore = 0
 
-		#NOTE: At all times, len(playerdeck) = len(cpudeck)
-		if len(self.playerDeck) == 0 and 
+		#NOTE: At all times, len(playerdeck) = len(cpudeck).
+		if len(self.playerDeck) == 0 and (0 == len(self.playerHand) or 0 == len(self.cpuHand)):
+			self.result = 3
+			return
+		elif len(self.playerDeck) == 0: #if decks are empty but hands aren't
+			say("Your deck is empty! You must place a card in your hand on the field.")
+			card = self.ask()
 
 	def showPlayerHand(self):
 		output = ""
