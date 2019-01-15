@@ -3,79 +3,87 @@ construct deck of 32
 halve deck, give half to each player
 each player draws 10 cards
 
-state = 0 #0 for dick, 1 for player turn, 2 for cpu turn
-result = 0 #1 for player wins, 2 for cpu win, 3 for draw
+#state: 0 means redraw, 1 means player turn, 2 means cpu turn
+state = 0
 
 player.score = 0
 cpu.score = 0
 
-while result == 0:
-	if state == 0:
-		dick()
-	elif state == 1:
+while the game is not ended:
+	if state is 0:
+		clear all cards on field (both scores = 0)
+	 	
+		if the decks are empty and one player has an empty hand:
+			the player with a non-empty hand wins
+		elif both decks are empty:
+			each player picks a card in their hand and places it on their field
+		else: (when both decks are nonempty)
+			each player places the top card of their deck on their field
+
+		if player's card has higher value:
+			state = 2 #cpu turn
+		elif cpu card has higher value:
+			state = 1 #player turn
+		#Note that if they are even, we redraw since state isn't changed.
+
+	elif state is 1:
 		turn(player)
-	else: #state = 2
+	else: #state is 2
 		turn(cpu)
 
-if result == 1:
-	player wins
-elif result == 2:
-	cpu wins
-else:
-	end game in draw
-
-def dick():
-	clear all cards on field (both scores = 0)
- 	
-	#NOTE: At all times, both players will have the same # of cards in deck.
-	if the decks are empty and at least one player has an empty hand:
-		result = 3
-		return
-	elif the decks are empty:
-		each player picks a card in their hand and places it on their field
-	else: #decks are nonempty
-		each player places the top card of their deck on their field
-
-	if player card has higher value:
-		state = 2 #cpu turn
-	elif cpu card has higher value:
-		state = 1 #player turn
-	#Note that if they are even, dick() gets re-called since state isn't changed.
-
 #Note that whenever this function is called, turnPlayer necessarily has less points than the opponent.
+#Also note that all times, both players deck sizes are equal.
+#(There is never a situation where only one player draws).
 def turn(turnPlayer):
-	if turnPlayer's hand is empty OR if the only card in it is Bolt/Mirror:
+
+	if the only card in turnPlayer's hand is a Bolt/Mirror card OR if turnPlayer's hand is empty:
 		opponent wins
 
 	turnPlayer must pick a card in their hand and play it
 
-	if played card is a Blade 1 card and there is a Reversed card on player's field:
-		un-Reverse the last card that is Reversed and reinstate its value
+	if played card is a Blade 1 card and turnPlayer's topmost card is Reversed:
+		un-Reverse the Reversed card and reinstate its value
 		discard played Blade 1 card
 
-	elif played card is a Blade card:
-		place Blade card on field
+	#Bolt/Mirror effect cards can only use their effects when the opponent's field is nonempty.
+	#If it is empty, they function like normal Blade cards with a value of 1.
+	elif played card is a Blade card or opponent's field is empty:
+		if the player's topmost card is reversed:
+			remove that reversed card
+		place played card on field
 		turnPlayer.score += value of placed card
 
+	#Note for the following two if statements that the opponent's field is nonempty if they execute.
+
 	elif played card is a Bolt card:
-		apply reversal to the last card placed on opponent's field
+		apply reversal to opponent's topmost field card
 		a card under reversal has its value reduced to 0
 		update opponent.score accordingly
+		discard played Bolt card
 
 	elif played card is a Mirror card:
 		switch control of all cards on the field
 		swap the scores
+		discard played Mirror card
 
 	if turnPlayer.score < opponent.score:
-		turnPlayer loses, update result variable
+		end game, turnPlayer loses
 	elif turnPlayer.score = opponent.score:
 		state = 0
 	else:
 		update state variable so opponent takes next turn
 """
 
-#[0] is number of 1 cards, [1] is 2 cards... [7] is # of Bolt cards, [8] is mirror
-VALUES = [2, 3, 4, 4, 4, 3, 2, 6, 4]
+ONECARD 	= 2
+TWOCARD 	= 3
+THREECARD 	= 4
+FOURCARD 	= 4
+FIVECARD 	= 4
+SIXCARD 	= 3
+SEVENCARD 	= 2
+BOLTCARDS 	= 8
+MIRRORCARDS = 9
+BLADECARDS 	= [ONECARD, TWOCARD, THREECARD, FOURCARD, FIVECARD, SIXCARD, SEVENCARD]
 
 import os
 import time
@@ -87,13 +95,6 @@ def say(msg):
 
 def clear():
 	os.system("clear||cls")
-
-class Card():
-	def __init__(self, t, v):
-		self.type = t
-		self.value = v
-		self.name = f"{t} ({v})"
-		self.reversed = False
 
 class Game():
 	def __init__(self):
@@ -109,26 +110,24 @@ class Game():
 		self.state		 = 0
 		self.result		 = 0
 
-		deck = []
+		#We store the cards in self.playerDeck initially. They are shuffled and split into opponent's deck later.
+		for number, value in enumerate(BLADECARDS, 1):
+			for i in range(number):
+				self.playerDeck.append(value)
 
-		for cardvalue in range(1, 8): #First 7 card values (balde cards)
-			for numberofcards in range(VALUES[cardvalue - 1]):
-				deck.append(Card("Blade", cardvalue))
+		#bolt cards are represented as 8.
+		#mirror cards are represented as 9.
+		for i in range(BOLTCARDS):
+			self.playerDeck.append(8)
+		for i in range(MIRRORCARDS):
+			self.playerDeck.append(9)
 
-		for i in range(VALUES[7]):
-			deck.append(Card("Bolt", 1))
-
-		for i in range(VALUES[8]):
-			deck.append(Card("Mirror", 1))
-
-		random.shuffle(deck)
+		random.shuffle(self.playerDeck)
+		for i in range(16):
+			self.cpuDeck.append(self.playerDeck.pop())
 
 		say("Beginning game!")
 		say("Each player takes a half-deck of 16 cards, then draws 10 cards...")
-
-		for i in range(16):
-			self.playerDeck.append(deck.pop())
-			self.cpuDeck.append(deck.pop())
 
 		for i in range(10):
 			self.playerHand.append(self.playerDeck.pop())
