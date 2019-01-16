@@ -1,15 +1,27 @@
 """
-construct deck of 32
+PSEUDOCODE
+Note a few things. Program is coded/pseudocode is written with these in mind.
+
+-When a player takes a turn, that necessarily means they have less points than their opponent.
+-At all times, both players will have an equal number of cards on their deck.
+(It is not possible for one and only one player to draw at once.)
+-When state = 0, that means redraw. When it = 1, player's turn. 2 = CPU turn.
+-The effect cards, Bolt/Mirror, only work when the opponent's field is nonempty.
+-When they are played when the opponent's field is empty, they have a value of 1.
+
+
+BLADE GAME PSEUDOCDOE STARTS HERE
+
+construct deck of 32 cards
 halve deck, give half to each player
 each player draws 10 cards
-
-#state: 0 means redraw, 1 means player turn, 2 means cpu turn
-state = 0
 
 player.score = 0
 cpu.score = 0
 
-while the game is not ended:
+state = 0
+
+while the game has not ended:
 	if state is 0:
 		clear all cards on field (both scores = 0)
 	 	
@@ -17,7 +29,7 @@ while the game is not ended:
 			the player with a non-empty hand wins
 		elif both decks are empty:
 			each player picks a card in their hand and places it on their field
-		else: (when both decks are nonempty)
+		else:
 			each player places the top card of their deck on their field
 
 		if player's card has higher value:
@@ -28,12 +40,10 @@ while the game is not ended:
 
 	elif state is 1:
 		turn(player)
+
 	else: #state is 2
 		turn(cpu)
 
-#Note that whenever this function is called, turnPlayer necessarily has less points than the opponent.
-#Also note that all times, both players deck sizes are equal.
-#(There is never a situation where only one player draws).
 def turn(turnPlayer):
 
 	if the only card in turnPlayer's hand is a Bolt/Mirror card OR if turnPlayer's hand is empty:
@@ -43,17 +53,14 @@ def turn(turnPlayer):
 
 	if played card is a Blade 1 card and turnPlayer's topmost card is Reversed:
 		un-Reverse the Reversed card and reinstate its value
+		update turnPlayer's score accordingly
 		discard played Blade 1 card
 
-	#Bolt/Mirror effect cards can only use their effects when the opponent's field is nonempty.
-	#If it is empty, they function like normal Blade cards with a value of 1.
 	elif played card is a Blade card or opponent's field is empty:
 		if the player's topmost card is reversed:
 			remove that reversed card
 		place played card on field
 		turnPlayer.score += value of placed card
-
-	#Note for the following two if statements that the opponent's field is nonempty if they execute.
 
 	elif played card is a Bolt card:
 		apply reversal to opponent's topmost field card
@@ -81,9 +88,9 @@ FOURCARD 	= 4
 FIVECARD 	= 4
 SIXCARD 	= 3
 SEVENCARD 	= 2
-BOLTCARDS 	= 8
-MIRRORCARDS = 9
 BLADECARDS 	= [ONECARD, TWOCARD, THREECARD, FOURCARD, FIVECARD, SIXCARD, SEVENCARD]
+BOLTCARDS 	= 6
+MIRRORCARDS = 4
 
 import os
 import time
@@ -108,11 +115,11 @@ class Game():
 		self.playerScore = 0
 		self.cpuScore 	 = 0
 		self.state		 = 0
-		self.result		 = 0
+		self.result		 = 0 #1 for player win, 2 for cpu win, 3 for draw
 
 		#We store the cards in self.playerDeck initially. They are shuffled and split into opponent's deck later.
-		for number, value in enumerate(BLADECARDS, 1):
-			for i in range(number):
+		for amount, value in enumerate(BLADECARDS, 1):
+			for i in range(amount):
 				self.playerDeck.append(value)
 
 		#bolt cards are represented as 8.
@@ -123,6 +130,7 @@ class Game():
 			self.playerDeck.append(9)
 
 		random.shuffle(self.playerDeck)
+
 		for i in range(16):
 			self.cpuDeck.append(self.playerDeck.pop())
 
@@ -142,7 +150,18 @@ class Game():
 		while self.result == 0:
 			clear()
 			if self.state == 0:
-				self.dick()
+				say(f"Both players have an even score! Clearing the field...")
+				self.playerField = []
+				self.cpuField = []
+				self.playerScore = 0
+				self.cpuScore = 0
+
+				if len(self.playerDeck) == 0 and (0 == len(self.playerHand) or 0 == len(self.cpuHand)):
+					self.result = 3
+					return
+				elif len(self.playerDeck) == 0: #if decks are empty but hands aren't
+					say("Your deck is empty! You must place a card in your hand on the field.")
+					card = self.ask()
 			elif self.state == 1:
 				self.playerTurn()
 			else:
@@ -176,42 +195,30 @@ class Game():
 					print("Your are not holding a card of that value. Please re-enter.")
 		return c
 
-	def dick(self):
-		say("Time to dick! Clearing the field...")
-		self.playerField = []
-		self.cpuField = []
-		self.playerScore = 0
-		self.cpuScore = 0
-
-		#NOTE: At all times, len(playerdeck) = len(cpudeck).
-		if len(self.playerDeck) == 0 and (0 == len(self.playerHand) or 0 == len(self.cpuHand)):
-			self.result = 3
-			return
-		elif len(self.playerDeck) == 0: #if decks are empty but hands aren't
-			say("Your deck is empty! You must place a card in your hand on the field.")
-			card = self.ask()
-
 	def showPlayerHand(self):
+		#Blade X cards: (n)
+		#Bolt cards:    (n)
+		#Mirror cards:  (n)
 		output = ""
 
 		for i in range(1, 8):
-			cards = [card for card in self.playerHand if card.type=="Blade" and card.value==i]
-			if len(cards) > 0:
-				output += f"{cards[0].name} cards: {len(cards)}\n"
+			cards = len([card for card in self.playerHand if card==i])
+			if cards > 0:
+				output += f"Blade {i} cards: ({cards})\n"
 
-		mirrors = [card for card in self.playerHand if card.type=="Mirror"]
-		if len(mirrors) > 0:
-			output += f"Mirror cards: {len(mirrors)}\n"
+		bolts = len([card for card in self.playerHand if card==8])
+		if bolts > 0:
+			output += f"Bolt cards:    ({bolts})\n"
 
-		bolts = [card for card in self.playerHand if card.type=="Bolt"]
-		if len(bolts) > 0:
-			output += f"Bolt cards: {len(bolts)}\n"
+		mirrors = len([card for card in self.playerHand if card==9])
+		if mirrors > 0:
+			output += f"Mirror cards:  ({mirrors})\n"
 
 		return output
 
 def main():
     while True:
-        result = input("Welcome to aelna354's Go Fish Game!\n"+
+        result = input("Welcome to aelna354's Blade game!\n"+
         "(Consult the README.MD file to view the rules.)\n"
         "Enter exit in any casing to close the program.\n"+
         "Otherwise, press enter to start the game.\n")
