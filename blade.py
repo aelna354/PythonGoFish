@@ -1,14 +1,15 @@
 """
-PSEUDOCODE
-Note a few things. Program is coded/pseudocode is written with these in mind.
+Pseudocode for a game of Blade. See README.MD for details.
+
+Note a few things. Pseudocode and program are written with these in mind.
 
 -When a player takes a turn, that necessarily means they have less points than their opponent.
--At all times, both players will have an equal number of cards on their deck.
-(It is not possible for one and only one player to draw at once.)
+-At all times, both players will have an equal number of cards in their deck.
+(As it is not possible for one and only one player to draw at once.)
 -When state = 0, that means redraw. When it = 1, player's turn. 2 = CPU turn.
 -The effect cards, Bolt/Mirror, only work when the opponent's field is nonempty.
--When they are played when the opponent's field is empty, they have a value of 1.
-
+-Therefore, when they are played when the opponent's field is empty, they have a value of 1 and are treated like normal Blade cards.
+-A player cannot play a Bolt/Mirror card as their last move (if its the last card in their hand).
 
 BLADE GAME PSEUDOCDOE STARTS HERE
 
@@ -23,11 +24,14 @@ state = 0
 
 while the game has not ended:
 	if state is 0:
+		if both players have an empty hand:
+			end game in draw
+		elif one player has an empty hand:
+			player with nonempty hand wins
+
 		clear all cards on field (both scores = 0)
-	 	
-		if the decks are empty and one player has an empty hand:
-			the player with a non-empty hand wins
-		elif both decks are empty:
+
+		if the decks are nonempty:
 			each player picks a card in their hand and places it on their field
 		else:
 			each player places the top card of their deck on their field
@@ -81,6 +85,11 @@ def turn(turnPlayer):
 		update state variable so opponent takes next turn
 """
 
+#ONECARD is number of Blade 1 cards, TWOCARD is number of Blade 2 cards, etc
+#BOLTCARDS and MIRRORCARDS are of course the number of Bolt and Mirror cards.
+
+import sys
+
 ONECARD 	= 2
 TWOCARD 	= 3
 THREECARD 	= 4
@@ -89,8 +98,16 @@ FIVECARD 	= 4
 SIXCARD 	= 3
 SEVENCARD 	= 2
 BLADECARDS 	= [ONECARD, TWOCARD, THREECARD, FOURCARD, FIVECARD, SIXCARD, SEVENCARD]
-BOLTCARDS 	= 6
+BOLTCARDS 	= 3
 MIRRORCARDS = 4
+
+NUMCARDS 	= sum(BLADECARDS) + BOLTCARDS + MIRRORCARDS
+HALFDECK 	= NUMCARDS / 2
+INITDRAW	= 10
+
+if NUMCARDS % 2 != 0:
+	input("ERROR: The number of cards in the deck is odd. It should be even. Press enter to acknowledge this error and close the program.")
+	sys.exit()
 
 import os
 import time
@@ -131,13 +148,13 @@ class Game():
 
 		random.shuffle(self.playerDeck)
 
-		for i in range(16):
+		for i in range(HALFDECK):
 			self.cpuDeck.append(self.playerDeck.pop())
 
 		say("Beginning game!")
-		say("Each player takes a half-deck of 16 cards, then draws 10 cards...")
+		say(f"Each player takes a half-deck of {HALFDECK} cards, then draws {INITDRAW} cards...")
 
-		for i in range(10):
+		for i in range(INITDRAW):
 			self.playerHand.append(self.playerDeck.pop())
 			self.cpuHand.append(self.cpuDeck.pop())
 
@@ -149,21 +166,37 @@ class Game():
 
 		while self.result == 0:
 			clear()
+
 			if self.state == 0:
+				phand = len(self.playerHand)
+				chand = len(self.cpuHand)
+
+				if phand + chand == 0:
+					input("\nEND GAME! It's a draw!")
+				elif phand == 0:
+					input("\nEND GAME! The computer wins.")
+				elif chand == 0:
+					input("\nEND GAME! The player wins.")
+
 				say(f"Both players have an even score! Clearing the field...")
+				
 				self.playerField = []
 				self.cpuField = []
 				self.playerScore = 0
 				self.cpuScore = 0
 
-				if len(self.playerDeck) == 0 and (0 == len(self.playerHand) or 0 == len(self.cpuHand)):
-					self.result = 3
-					return
-				elif len(self.playerDeck) == 0: #if decks are empty but hands aren't
-					say("Your deck is empty! You must place a card in your hand on the field.")
+				if len(self.playerDeck) == 0:
+					say("The decks are empty!")
+					say("You must pick a card in your hand to place on the field.")
+					say("Select a card in your hand.")
 					card = self.ask()
+					say(f"You are placing a {card} card on the field.")
+				else:
+					say("The decks aren't empty!")
+
 			elif self.state == 1:
 				self.playerTurn()
+
 			else:
 				self.cpuTurn()
 
@@ -173,27 +206,32 @@ class Game():
 			"You can only pick a card in your hand.")
 
 		while True:
+			print("\n")
 			c = input().lower()
 
 			if c not in ["1", "2", "3", "4", "5", "6", "7", "mirror", "bolt"]:
 				c = ""
 				print("Invalid input. Please re-enter.")
 			
+			elif c == "bolt":
+				if 0 == sum(card==8 for card in self.playerHand):
+					print("You are not holding a Bolt card. Please re-enter.")
+				else:
+					return 8
+
 			elif c == "mirror":
-				if 0 == sum(card.type=="Mirror" for card in self.playerHand):
+				if 0 == sum(card==9 for card in self.playerHand):
 					c = ""
 					print("You are not holding a Mirror card. Please re-enter.")
-
-			elif c == "bolt":
-				if 0 == sum(card.type=="Bolt" for card in self.playerHand):
-					c = ""
-					print("You are not holding a Bolt card. Please re-enter.")
+				else:
+					return 9
 
 			else:
-				if 0 == sum(card.type=="Blade" and card.value==c for card in self.playerHand):
-					c = ""
+				c = int(c)
+				if 0 == sum(card==c for card in self.playerHand):
 					print("Your are not holding a card of that value. Please re-enter.")
-		return c
+				else:
+					return c
 
 	def showPlayerHand(self):
 		#Blade X cards: (n)
