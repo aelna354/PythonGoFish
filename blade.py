@@ -85,29 +85,26 @@ def turn(turnPlayer):
 		update state variable so opponent takes next turn
 """
 
-#ONECARD is number of Blade 1 cards, TWOCARD is number of Blade 2 cards, etc
+#Deck composition, defined via constants.
+#ONECARDS is number of Blade 1 cards, TWOCARDS is number of Blade 2 cards, etc..
 #BOLTCARDS and MIRRORCARDS are of course the number of Bolt and Mirror cards.
 
-import sys
-
-ONECARD 	= 2
-TWOCARD 	= 3
-THREECARD 	= 4
-FOURCARD 	= 4
-FIVECARD 	= 4
-SIXCARD 	= 3
-SEVENCARD 	= 2
-BLADECARDS 	= [ONECARD, TWOCARD, THREECARD, FOURCARD, FIVECARD, SIXCARD, SEVENCARD]
-BOLTCARDS 	= 3
+#The total deck size should be an even number and INITDRAW should be strictly less than HALFDECK.
+#Game will behave in unexpected ways otherwise.
+ONECARDS 	= 2
+TWOCARDS 	= 3
+THREECARDS 	= 4
+FOURCARDS 	= 4
+FIVECARDS 	= 4
+SIXCARDS 	= 3
+SEVENCARDS 	= 2
+BLADECARDS 	= [ONECARDS, TWOCARDS, THREECARDS, FOURCARDS, FIVECARDS, SIXCARDS, SEVENCARDS]
+BOLTCARDS 	= 6
 MIRRORCARDS = 4
 
 NUMCARDS 	= sum(BLADECARDS) + BOLTCARDS + MIRRORCARDS
-HALFDECK 	= NUMCARDS / 2
+HALFDECK 	= NUMCARDS // 2
 INITDRAW	= 10
-
-if NUMCARDS % 2 != 0:
-	input("ERROR: The number of cards in the deck is odd. It should be even. Press enter to acknowledge this error and close the program.")
-	sys.exit()
 
 import os
 import time
@@ -123,26 +120,28 @@ def clear():
 class Game():
 	def __init__(self):
 		clear()
-		self.playerDeck  = []
-		self.cpuDeck	 = []
-		self.playerHand  = []
-		self.cpuHand	 = []
-		self.playerField = []
-		self.cpuField 	 = []
-		self.playerScore = 0
-		self.cpuScore 	 = 0
-		self.state		 = 0
-		self.result		 = 0 #1 for player win, 2 for cpu win, 3 for draw
 
-		#We store the cards in self.playerDeck initially. They are shuffled and split into opponent's deck later.
+		self.playerScore 	= 0
+		self.cpuScore 	 	= 0
+		self.playerDeck  	= []
+		self.cpuDeck	 	= []
+		self.playerHand  	= []
+		self.cpuHand	 	= []
+		self.playerField    = []
+		self.cpuField       = []
+		self.playerReversed	= False	#True if topmost card is reversed
+		self.cpuReversed	= False
+
+		self.state		 	= 0
+		self.result		 	= 0 #1 for player win, 2 for cpu win, 3 for draw
+
 		for amount, value in enumerate(BLADECARDS, 1):
 			for i in range(amount):
 				self.playerDeck.append(value)
 
-		#bolt cards are represented as 8.
-		#mirror cards are represented as 9.
 		for i in range(BOLTCARDS):
 			self.playerDeck.append(8)
+
 		for i in range(MIRRORCARDS):
 			self.playerDeck.append(9)
 
@@ -167,16 +166,58 @@ class Game():
 		while self.result == 0:
 			clear()
 
+			pfield = ""
+			cfield = ""
+
+			if not self.playerField:
+				pfield = "     Empty"
+			else:
+				for i in self.playerField:
+					pfield += "     "
+					if i < 8:
+						pfield += f"Blade ({i})\n"
+					elif i == 8:
+						pfield += "Bolt (1)\n"
+					else:
+						pfield += "Mirror (1)\n"
+				if self.playerReversed:
+					pfield = pfield[:-2] + "(Reversed)\n"
+				pfield += "\n"
+
+			if not self.cpuField:
+				cfield = "Empty"
+			else:
+				for i in self.cpuField:
+					cfield += "     "
+					if i < 8:
+						cfield += f"Blade ({i})\n"
+					elif i == 8:
+						cfield += "Bolt (1)\n"
+					else:
+						cfield += "Mirror (1)\n"
+				if self.cpuReversed:
+					cfield = cfield[:-2] + "(Reversed)\n"
+				cfield += "\n"
+
+			say(f"Player's score: {self.playerScore}\n"+
+			    f"CPU's score:    {self.cpuScore}\n"+
+			    f"Player's field: {pfield}\n"+
+			    f"CPU's field:    {cfield}\n"+
+			    f"Your hand: 	  {self.showPlayerHand()}")
+
 			if self.state == 0:
 				phand = len(self.playerHand)
 				chand = len(self.cpuHand)
 
 				if phand + chand == 0:
-					input("\nEND GAME! It's a draw!")
+					self.result = 3
+					break
 				elif phand == 0:
-					input("\nEND GAME! The computer wins.")
+					self.result = 2
+					break
 				elif chand == 0:
-					input("\nEND GAME! The player wins.")
+					self.result = 1
+					break
 
 				say(f"Both players have an even score! Clearing the field...")
 				
@@ -193,12 +234,24 @@ class Game():
 					say(f"You are placing a {card} card on the field.")
 				else:
 					say("The decks aren't empty!")
+					say("Both players must place the top card of their deck on their fields.\n")
+					self.playerField.append(self.playerDeck.pop())
+					self.cpuField.append(self.cpuDeck.pop())
 
 			elif self.state == 1:
 				self.playerTurn()
 
 			else:
 				self.cpuTurn()
+
+		if self.result == 1:
+			say("Game over! Player wins.")
+		elif self.result == 2:
+			say("Game over! CPU wins.")
+		else:
+			say("Ha, it looks like it's a draw!")
+
+		input("\nPress enter to close this window and end the game.")
 
 	def ask(self):
 		say("Enter the number of the selected card if it is a Blade card.\n"+
@@ -210,25 +263,23 @@ class Game():
 			c = input().lower()
 
 			if c not in ["1", "2", "3", "4", "5", "6", "7", "mirror", "bolt"]:
-				c = ""
 				print("Invalid input. Please re-enter.")
 			
 			elif c == "bolt":
-				if 0 == sum(card==8 for card in self.playerHand):
+				if 8 not in self.playerHand:
 					print("You are not holding a Bolt card. Please re-enter.")
 				else:
 					return 8
 
 			elif c == "mirror":
-				if 0 == sum(card==9 for card in self.playerHand):
-					c = ""
+				if 9 not in self.playerHand:
 					print("You are not holding a Mirror card. Please re-enter.")
 				else:
 					return 9
 
 			else:
 				c = int(c)
-				if 0 == sum(card==c for card in self.playerHand):
+				if c not in self.playerHand:
 					print("Your are not holding a card of that value. Please re-enter.")
 				else:
 					return c
