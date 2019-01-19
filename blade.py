@@ -23,66 +23,66 @@ cpu.score = 0
 state = 0
 
 while the game has not ended:
-	if state is 0:
-		if both players have an empty hand:
-			end game in draw
-		elif one player has an empty hand:
-			player with nonempty hand wins
+    if state is 0:
+        if both players have an empty hand:
+            end game in draw
+        elif one player has an empty hand:
+            player with nonempty hand wins
 
-		clear all cards on field (both scores = 0)
+        clear all cards on field (both scores = 0)
 
-		if the decks are nonempty:
-			each player picks a card in their hand and places it on their field
-		else:
-			each player places the top card of their deck on their field
+        if the decks are nonempty:
+            each player picks a card in their hand and places it on their field
+        else:
+            each player places the top card of their deck on their field
 
-		if player's card has higher value:
-			state = 2 #cpu turn
-		elif cpu card has higher value:
-			state = 1 #player turn
-		#Note that if they are even, we redraw since state isn't changed.
+        if player's card has higher value:
+            state = 2 #cpu turn
+        elif cpu card has higher value:
+            state = 1 #player turn
+        #Note that if they are even, we redraw since state isn't changed.
 
-	elif state is 1:
-		turn(player)
+    elif state is 1:
+        turn(player)
 
-	else: #state is 2
-		turn(cpu)
+    else: #state is 2
+        turn(cpu)
 
 def turn(turnPlayer):
 
-	if the only card in turnPlayer's hand is a Bolt/Mirror card OR if turnPlayer's hand is empty:
-		opponent wins
+    if the only card in turnPlayer's hand is a Bolt/Mirror card OR if turnPlayer's hand is empty:
+        opponent wins
 
-	turnPlayer must pick a card in their hand and play it
+    turnPlayer must pick a card in their hand and play it
 
-	if played card is a Blade 1 card and turnPlayer's topmost card is Reversed:
-		un-Reverse the Reversed card and reinstate its value
-		update turnPlayer's score accordingly
-		discard played Blade 1 card
+    if played card is a Blade 1 card and turnPlayer's topmost card is Reversed:
+        un-Reverse the Reversed card and reinstate its value
+        update turnPlayer's score accordingly
+        discard played Blade 1 card
 
-	elif played card is a Blade card or opponent's field is empty:
-		if the player's topmost card is reversed:
-			remove that reversed card
-		place played card on field
-		turnPlayer.score += value of placed card
+    elif played card is a Blade card or opponent's field is empty:
+        if the player's topmost card is reversed:
+            remove that reversed card
+        place played card on field
+        turnPlayer.score += value of placed card
 
-	elif played card is a Bolt card:
-		apply reversal to opponent's topmost field card
-		a card under reversal has its value reduced to 0
-		update opponent.score accordingly
-		discard played Bolt card
+    elif played card is a Bolt card:
+        apply reversal to opponent's topmost field card
+        a card under reversal has its value reduced to 0
+        update opponent.score accordingly
+        discard played Bolt card
 
-	elif played card is a Mirror card:
-		switch control of all cards on the field
-		swap the scores
-		discard played Mirror card
+    elif played card is a Mirror card:
+        switch control of all cards on the field
+        swap the scores
+        discard played Mirror card
 
-	if turnPlayer.score < opponent.score:
-		end game, turnPlayer loses
-	elif turnPlayer.score = opponent.score:
-		state = 0
-	else:
-		update state variable so opponent takes next turn
+    if turnPlayer.score < opponent.score:
+        end game, turnPlayer loses
+    elif turnPlayer.score = opponent.score:
+        state = 0
+    else:
+        update state variable so opponent takes next turn
 """
 
 #Deck composition, defined via constants.
@@ -91,231 +91,112 @@ def turn(turnPlayer):
 
 #The total deck size should be an even number and INITDRAW should be strictly less than HALFDECK.
 #Game will behave in unexpected ways otherwise.
-ONECARDS 	= 2
-TWOCARDS 	= 3
-THREECARDS 	= 4
-FOURCARDS 	= 4
-FIVECARDS 	= 4
-SIXCARDS 	= 3
-SEVENCARDS 	= 2
-BLADECARDS 	= [ONECARDS, TWOCARDS, THREECARDS, FOURCARDS, FIVECARDS, SIXCARDS, SEVENCARDS]
-BOLTCARDS 	= 6
+ONECARDS    = 2
+TWOCARDS    = 3
+THREECARDS  = 4
+FOURCARDS   = 4
+FIVECARDS   = 4
+SIXCARDS    = 3
+SEVENCARDS  = 2
+BLADECARDS  = [ONECARDS, TWOCARDS, THREECARDS, FOURCARDS, FIVECARDS, SIXCARDS, SEVENCARDS]
+BOLTCARDS   = 6
 MIRRORCARDS = 4
 
-NUMCARDS 	= sum(BLADECARDS) + BOLTCARDS + MIRRORCARDS
-HALFDECK 	= NUMCARDS // 2
-INITDRAW	= 10
+NUMCARDS    = sum(BLADECARDS) + BOLTCARDS + MIRRORCARDS
+HALFDECK    = NUMCARDS // 2
+INITDRAW    = 10
 
-import os
-import time
-import random
+from tkinter import *
+from tkinter import messagebox
 
-def say(msg):
-	print(msg)
-	time.sleep(1.5)
+class Blade():
+    def __init__(self, window):
+        self.window = window
 
-def clear():
-	os.system("clear||cls")
+        bg = PhotoImage(file="images/bg.png")
+        back = PhotoImage(file="images/back.png")
+        one = PhotoImage(file="images/one.png")
 
-class Game():
-	def __init__(self):
-		clear()
-
-		self.playerScore 	= 0
-		self.cpuScore 	 	= 0
-		self.playerDeck  	= []
-		self.cpuDeck	 	= []
-		self.playerHand  	= []
-		self.cpuHand	 	= []
-		self.playerField    = []
-		self.cpuField       = []
-		self.playerReversed	= False	#True if topmost card is reversed
-		self.cpuReversed	= False
-
-		self.state		 	= 0
-		self.result		 	= 0 #1 for player win, 2 for cpu win, 3 for draw
-
-		for amount, value in enumerate(BLADECARDS, 1):
-			for i in range(amount):
-				self.playerDeck.append(value)
-
-		for i in range(BOLTCARDS):
-			self.playerDeck.append(8)
-
-		for i in range(MIRRORCARDS):
-			self.playerDeck.append(9)
-
-		random.shuffle(self.playerDeck)
-
-		for i in range(HALFDECK):
-			self.cpuDeck.append(self.playerDeck.pop())
-
-		say("Beginning game!")
-		say(f"Each player takes a half-deck of {HALFDECK} cards, then draws {INITDRAW} cards...")
-
-		for i in range(INITDRAW):
-			self.playerHand.append(self.playerDeck.pop())
-			self.cpuHand.append(self.cpuDeck.pop())
-
-		say("\nYour hand consists of the following cards:\n")
-		say(self.showPlayerHand())
-		say("Press enter to start the game.")
-		
-		input("")
-
-		while self.result == 0:
-			clear()
-
-			pfield = ""
-			cfield = ""
-
-			if not self.playerField:
-				pfield = "     Empty"
-			else:
-				for i in self.playerField:
-					pfield += "     "
-					if i < 8:
-						pfield += f"Blade ({i})\n"
-					elif i == 8:
-						pfield += "Bolt (1)\n"
-					else:
-						pfield += "Mirror (1)\n"
-				if self.playerReversed:
-					pfield = pfield[:-2] + "(Reversed)\n"
-				pfield += "\n"
-
-			if not self.cpuField:
-				cfield = "Empty"
-			else:
-				for i in self.cpuField:
-					cfield += "     "
-					if i < 8:
-						cfield += f"Blade ({i})\n"
-					elif i == 8:
-						cfield += "Bolt (1)\n"
-					else:
-						cfield += "Mirror (1)\n"
-				if self.cpuReversed:
-					cfield = cfield[:-2] + "(Reversed)\n"
-				cfield += "\n"
-
-			say(f"Player's score: {self.playerScore}\n"+
-			    f"CPU's score:    {self.cpuScore}\n"+
-			    f"Player's field: {pfield}\n"+
-			    f"CPU's field:    {cfield}\n"+
-			    f"Your hand: 	  {self.showPlayerHand()}")
-
-			if self.state == 0:
-				phand = len(self.playerHand)
-				chand = len(self.cpuHand)
-
-				if phand + chand == 0:
-					self.result = 3
-					break
-				elif phand == 0:
-					self.result = 2
-					break
-				elif chand == 0:
-					self.result = 1
-					break
-
-				say(f"Both players have an even score! Clearing the field...")
-				
-				self.playerField = []
-				self.cpuField = []
-				self.playerScore = 0
-				self.cpuScore = 0
-
-				if len(self.playerDeck) == 0:
-					say("The decks are empty!")
-					say("You must pick a card in your hand to place on the field.")
-					say("Select a card in your hand.")
-					card = self.ask()
-					say(f"You are placing a {card} card on the field.")
-				else:
-					say("The decks aren't empty!")
-					say("Both players must place the top card of their deck on their fields.\n")
-					self.playerField.append(self.playerDeck.pop())
-					self.cpuField.append(self.cpuDeck.pop())
-
-			elif self.state == 1:
-				self.playerTurn()
-
-			else:
-				self.cpuTurn()
-
-		if self.result == 1:
-			say("Game over! Player wins.")
-		elif self.result == 2:
-			say("Game over! CPU wins.")
-		else:
-			say("Ha, it looks like it's a draw!")
-
-		input("\nPress enter to close this window and end the game.")
-
-	def ask(self):
-		say("Enter the number of the selected card if it is a Blade card.\n"+
-			"Enter \"Bolt\" or \"Mirror\" (case insensitive) to pick one of those cards.\n"+
-			"You can only pick a card in your hand.")
-
-		while True:
-			print("\n")
-			c = input().lower()
-
-			if c not in ["1", "2", "3", "4", "5", "6", "7", "mirror", "bolt"]:
-				print("Invalid input. Please re-enter.")
-			
-			elif c == "bolt":
-				if 8 not in self.playerHand:
-					print("You are not holding a Bolt card. Please re-enter.")
-				else:
-					return 8
-
-			elif c == "mirror":
-				if 9 not in self.playerHand:
-					print("You are not holding a Mirror card. Please re-enter.")
-				else:
-					return 9
-
-			else:
-				c = int(c)
-				if c not in self.playerHand:
-					print("Your are not holding a card of that value. Please re-enter.")
-				else:
-					return c
-
-	def showPlayerHand(self):
-		#Blade X cards: (n)
-		#Bolt cards:    (n)
-		#Mirror cards:  (n)
-		output = ""
-
-		for i in range(1, 8):
-			cards = len([card for card in self.playerHand if card==i])
-			if cards > 0:
-				output += f"Blade {i} cards: ({cards})\n"
-
-		bolts = len([card for card in self.playerHand if card==8])
-		if bolts > 0:
-			output += f"Bolt cards:    ({bolts})\n"
-
-		mirrors = len([card for card in self.playerHand if card==9])
-		if mirrors > 0:
-			output += f"Mirror cards:  ({mirrors})\n"
-
-		return output
-
-def main():
-    while True:
-        result = input("Welcome to aelna354's Blade game!\n"+
-        "(Consult the README.MD file to view the rules.)\n"
-        "Enter exit in any casing to close the program.\n"+
-        "Otherwise, press enter to start the game.\n")
+        background = Label(window, image=bg)
+        background.image = bg
+        background.place(relx=.5, rely=.5, anchor='center')
         
-        if result.lower() != "exit":
-            Game()
-            continue
+        Deck = Label(window, image=back)
+        Deck.image = back
+        Deck.place(relx=.5, rely=.5, anchor='center')
 
-        break
+        self.terminal = Text(window, height=5, width=40, fg='green', bg='lightgreen')
+        self.terminal.place(relx=0, rely=.5, anchor='w')
+        self.terminal.insert(END, "Welcome to Blade!\nClick on the deck to start the game.\nConsult README.MD for rules.")
+        self.terminal.config(state=DISABLED)
 
-main()
+        self.gamestate = Text(window, height=5, width=40, fg='blue', bg='lightblue')
+        self.gamestate.place(relx=1, rely=.5, anchor='e')
+        self.gamestate.insert(END, "Deck sizes: 16.\nYour score: 0.\nOpponent score: 0.")
+        self.gamestate.config(state=DISABLED)
+
+        self.reset = Button(window, text="Reset Game", fg='black', bg='yellow')
+        self.reset.place(relx=1, rely=1, anchor='se')
+
+        self.playerHandV = []
+        self.cpuHandV    = []
+        j = 5
+        for i in range(10):
+            self.playerHandV.append(Label(window, image=back))
+            self.cpuHandV.append(Label(window, image=back))
+            self.playerHandV[-1].image = back
+            self.cpuHandV[-1].image = back
+            self.playerHandV[-1].place(anchor='w', rely=.9, x=(j + 67*i))
+            self.cpuHandV[-1].place(anchor='w', rely=.1, x=(j + 67*i))
+            j += 16
+
+    def startGame(self):
+        self.playerScore    = 0
+        self.cpuScore       = 0
+        self.playerDeck     = []
+        self.cpuDeck        = []
+        self.playerHand     = []
+        self.cpuHand        = []
+        self.playerField    = []
+        self.cpuField       = []
+        self.playerReversed = False #True if topmost card is reversed
+        self.cpuReversed    = False
+        self.state          = 0
+        self.result         = 0 #1 for player win, 2 for cpu win, 3 for draw
+
+        for amount, value in enumerate(BLADECARDS, 1):
+            for i in range(amount):
+                self.playerDeck.append(value)
+
+        for i in range(BOLTCARDS):
+            self.playerDeck.append(8)
+
+        for i in range(MIRRORCARDS):
+            self.playerDeck.append(9)
+
+        random.shuffle(self.playerDeck)
+
+        for i in range(HALFDECK):
+            self.cpuDeck.append(self.playerDeck.pop())
+
+    def updateTerminal(self, text):
+        self.terminal.config(state=NORMAL)
+        self.terminal.delete(1.0, END)
+        self.terminal.insert(END, text)
+        self.terminal.config(state=DISABLED)
+
+    def updateStatus(self, text):
+        self.gamestate.config(state=NORMAL)
+        self.gamestate.delete(1.0, END)
+        string = (f"Deck sizes: {len(self.playerDeck)}.\n"+
+                  f"Your score: {self.playerScore}.\n"
+                  f"CPU score:  {self.cpuScore}.")
+        self.gamestate.insert(END, string)
+        self.gamestate.config(state=DISABLED)
+
+program = Tk()
+program.title("Blade!")
+program.resizable(False, False)
+program.geometry("960x575")
+p = Blade(program)
+program.mainloop()
