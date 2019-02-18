@@ -1,7 +1,6 @@
-# aeln354's Go Fish Game And Blade Game
+# aeln354's Go Fish Game
 
-Made for fun/outta boredom. Inspired by the Go Fish game in Spy Fox in Dry Cereal. Coded in Python 3. Also made a Blade game inspired by the game of such name in Trails of Cold Steel.
-
+Made for fun/outta boredom. Inspired by the Go Fish game in Spy Fox in Dry Cereal. Coded in Python 3.
 
 # Rules for Go Fish
 
@@ -29,29 +28,3 @@ Enter "revealHand" when prompted to see the contents of the computer's hand. May
 
 ## Features To Be Implemented
 * An "Extended Play Mode" where only one card of the asked-for Value is surrendered. Would make the game more strategic, but also a lot longer and slower (possibly to the point of tedium)
-
-# Rules for Blade
-
-As with above, run `python blade.py` to play the command line version of Blade.
-
-Blade is a card game where each player tries to have a higher score than the other. It is constructed with a 32-card deck consisting of Blade cards each valued from 1-7, Bolt cards, and Mirror cards. At the start of the game, the deck is halved with 16 cards given to each player. Then, each player draws 10 cards. (I have written the program so that you can easily change the composition and size of the deck by merely changing constants in the code; the only constraint is that it must be of an even size.)
-
-After this happens, each player places the top card of their deck on their field. At all times, a player's score is equal to the value of all cards on their field. Whoever has the lower score takes the first turn.
-
-During a turn, a player can:
-
-* Play a Blade card to their field and raise their score by its value
-
-* Play a Bolt card to "Reverse" the topmost card (last card placed) on their opponent's field and reduce its value to 0
-
-* Play a Mirror card to swithc control of all cards on the field, effectively swapping the scores
-
-* If the topmost card on their field is Reversed, they can use a 1-valued Blade card to un-reverse that card
-
-If, after a player takes a turn, their score is lower than their opponent's, they lose. If it is higher, the opponent must take their turn. If a player takes a turn when their hand is empty, they lose. It is not allowed to play a Bolt/Mirror card as a player's final card; therefore, when it is a player's turn, and the last card in their hand is a Bolt or Mirror card, they automatically lose.
-
-If, after a player takes a turn, their score is tied, then both players must clear their field and re-draw a card from their deck. If the decks are empty, they must use a card in their hand for this purpose instead.
-
-When a Mirror or Bolt card is played from the deck or played when the opponent has an empty field, it is treated as a 1-valued Blade card.
-
-Pseudocode for the game is given at the top of the blade.py file.

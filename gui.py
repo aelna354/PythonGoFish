@@ -1,5 +1,8 @@
 #GUI version of the game from gofish.py
-#Graphics are rather minimalistic.
+#Graphics are rather minimalistic. The goal of this project is more
+#about being able to play my CLI version using only a mouse,
+#than to be a pretty/appealing GUI in its own right.
+#Still pleased with this though.
 
 from tkinter import *
 from tkinter import messagebox
